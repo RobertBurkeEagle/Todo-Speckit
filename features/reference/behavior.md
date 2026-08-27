@@ -40,6 +40,12 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Rule | Enforcement | Introduced |
 |------|-------------|------------|
 | Every authenticated request resolves to `req.user.id` from the session | `authenticate` | Feature 1 |
+| Lists are private to the owner; reads/writes always scoped by `userId` | List API + `getAccessibleListOrNull` | Feature 2 |
+| Cross-user list access returns `404` (never `403`) | List update/delete | Feature 2 |
+| List names are trimmed; empty names rejected; max 100 characters | List create/update | Feature 2 |
+| Lists are ordered alphabetically by name | `GET /todo/lists` | Feature 2 |
+| Dashboard is a single lists view with dialog create/rename/delete | `Dashboard.vue` | Feature 2 |
+| `MenuBar` shows the signed-in name and Sign out; hidden on login/register | `App.vue` + `MenuBar.vue` | Feature 2 |
 | No Feature 1 API returns another user's profile or session | Auth controllers | Feature 1 |
 
 ## Errors (product convention)

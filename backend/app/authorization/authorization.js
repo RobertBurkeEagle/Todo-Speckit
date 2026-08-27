@@ -32,3 +32,10 @@ export const authenticate = async (req, res, next) => {
 
   next();
 };
+
+export const getAccessibleListOrNull = async (req, listId) => {
+  const row = await db.list.findOne({
+    where: { id: listId, userId: req.user.id },
+  });
+  return row ?? null;
+};

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import authRoutes from "./auth.routes.js";
-import { authenticate } from "../authorization/authorization.js";
+import listRoutes from "./list.routes.js";
 
 const router = Router();
 
@@ -9,11 +9,6 @@ router.get("/health", (_req, res) => {
 });
 
 router.use("/", authRoutes);
-
-// Feature 1 Gherkin: authenticated GET /todo/lists returns 200 + caller-scoped array.
-// Full list CRUD is Feature 2; this stub returns no lists yet.
-router.get("/lists", [authenticate], (_req, res) => {
-  res.send([]);
-});
+router.use("/lists", listRoutes);
 
 export default router;

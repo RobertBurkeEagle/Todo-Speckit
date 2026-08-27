@@ -1,7 +1,7 @@
 # API Reference
 
 **Base path:** `/todo/`  
-**Status:** Integrated API through **Feature 1** (authentication).  
+**Status:** Integrated API through **Feature 2** (authentication + lists).  
 **Authority for new work:** feature specs in `features/` — update this file in the same PR when routes or payloads change.
 
 **Auth:** Send `Authorization: Bearer <token>` on protected routes.  
@@ -12,7 +12,7 @@
 | Area | Feature |
 |------|---------|
 | Register, login, logout | 1 |
-| Stub `GET /todo/lists` (empty array until Feature 2) | 1 |
+| List CRUD | 2 |
 
 ---
 
@@ -67,10 +67,15 @@
 
 ---
 
-## Lists (Feature 1 stub)
+## Lists (Feature 2)
 
 | Method | Path | Auth | Purpose |
 |--------|------|------|---------|
-| `GET` | `/todo/lists` | Yes | Returns `[]` until Feature 2 list CRUD |
+| `GET` | `/todo/lists` | Yes | Lists owned by the caller, sorted by `name` ASC |
+| `POST` | `/todo/lists` | Yes | Create a list; `userId` from session only |
+| `PUT` | `/todo/lists/:listId` | Yes | Rename an owned list |
+| `DELETE` | `/todo/lists/:listId` | Yes | Delete an owned list |
 
-Unauthenticated callers receive `401`.
+**Create / rename body:** `{ "name": "Groceries" }`  
+**Success object:** `{ id, name, userId, createdAt, updatedAt }` (`201` create, `200` update/list).  
+**Errors:** empty name `400` `"List name is required."`; name > 100 chars `400` `"List name must be 100 characters or fewer."`; invalid id `400`; missing/unowned list `404` `"List with id=<id> not found."` (never `403`).
