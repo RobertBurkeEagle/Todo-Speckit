@@ -50,6 +50,10 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | New todos default `completed: false`; ordered incomplete first then `createdAt` | Todo create + `GET .../todos` | Feature 3 |
 | Deleting a list removes its todos | Sequelize `onDelete: CASCADE` | Feature 3 |
 | Items are managed in nested dialogs from the list row Items icon | `Dashboard.vue` | Feature 3 |
+| Profile is self-only (`:id` must match `req.user.id`); `404` for other users | User API + `getAccessibleUserOrNull` | Feature 4 |
+| Optional password on profile update is bcrypt-hashed when provided | `PUT /todo/users/:id` | Feature 4 |
+| Logout lives in the profile dropdown; menu bar has no Sign out button | `MenuBar.vue` | Feature 4 |
+| After profile save, `localStorage` `user` is refreshed and `user-logged-in` dispatched | `MenuBar.vue` | Feature 4 |
 | No Feature 1 API returns another user's profile or session | Auth controllers | Feature 1 |
 
 ## Errors (product convention)

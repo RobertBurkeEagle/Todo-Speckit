@@ -1,7 +1,7 @@
 # API Reference
 
 **Base path:** `/todo/`  
-**Status:** Integrated API through **Feature 3** (authentication, lists, todos).  
+**Status:** Integrated API through **Feature 4** (auth, lists, todos, profile).  
 **Authority for new work:** feature specs in `features/` — update this file in the same PR when routes or payloads change.
 
 **Auth:** Send `Authorization: Bearer <token>` on protected routes.  
@@ -14,6 +14,7 @@
 | Register, login, logout | 1 |
 | List CRUD | 2 |
 | Todo items | 3 |
+| User profile | 4 |
 
 ---
 
@@ -95,3 +96,15 @@
 **Create body:** `{ "title": "Buy milk" }`  
 **Success object:** `{ id, listId, title, completed, userId, createdAt, updatedAt }` (`201` create, `200` update). New todos default `completed: false`.  
 **Errors:** empty title `400` `"Todo title is required."`; title > 255 chars `400`; missing/unowned list or todo `404` `"List with id=<id> not found."` / `"Todo with id=<id> not found."`. Unauthenticated `401`. Deleting a list cascades todos.
+
+---
+
+## Profile (Feature 4)
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| `GET` | `/todo/users/:id` | Yes | Own profile only |
+| `PUT` | `/todo/users/:id` | Yes | Update own name, email, username; optional password |
+
+**Success object:** `{ id, fName, lName, email, username, role, createdAt, updatedAt }` — never a password hash.  
+**Errors:** missing required fields `400`; password < 8 `400`; duplicate username/email `400`; other user `404` `"User with id=<id> not found."`; unauthenticated `401`.
