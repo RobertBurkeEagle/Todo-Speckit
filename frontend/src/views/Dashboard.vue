@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import listServices from "../services/listServices.js";
 import todoServices from "../services/todoServices.js";
+import { formatDueDate, isTodoOverdue, optionalDueDateRules, toDateInputValue } from "../config/validation.js";
 
 const lists = ref([]);
 const loading = ref(false);
@@ -32,12 +33,14 @@ const todosError = ref("");
 
 const addItemDialog = ref(false);
 const addTitle = ref("");
+const addDueDate = ref("");
 const addForm = ref(null);
 const addError = ref("");
 const adding = ref(false);
 
 const editItemDialog = ref(false);
 const editTitle = ref("");
+const editDueDate = ref("");
 const editForm = ref(null);
 const editError = ref("");
 const editing = ref(false);
@@ -168,6 +171,7 @@ const closeItems = () => {
 
 const openAddItem = () => {
   addTitle.value = "";
+  addDueDate.value = "";
   addError.value = "";
   addItemDialog.value = true;
 };
@@ -181,7 +185,11 @@ const submitAddItem = async () => {
 
   adding.value = true;
   try {
-    await todoServices.createTodo(itemsList.value.id, { title: addTitle.value.trim() });
+    const payload = { title: addTitle.value.trim() };
+    if (addDueDate.value) {
+      payload.dueDate = addDueDate.value;
+    }
+    await todoServices.createTodo(itemsList.value.id, payload);
     addItemDialog.value = false;
     await loadTodos();
   } catch (error) {
@@ -203,6 +211,7 @@ const toggleCompleted = async (todo, completed) => {
 const openEditItem = (todo) => {
   todoBeingEdited.value = todo;
   editTitle.value = todo.title;
+  editDueDate.value = toDateInputValue(todo.dueDate);
   editError.value = "";
   editItemDialog.value = true;
 };
@@ -218,6 +227,7 @@ const submitEditItem = async () => {
   try {
     await todoServices.updateTodo(todoBeingEdited.value.id, {
       title: editTitle.value.trim(),
+      dueDate: editDueDate.value || null,
     });
     editItemDialog.value = false;
     await loadTodos();
@@ -438,6 +448,9 @@ onMounted(loadLists);
               <v-list-item-title :class="{ 'text-decoration-line-through text-medium-emphasis': todo.completed }">
                 {{ todo.title }}
               </v-list-item-title>
+              <div v-if="todo.dueDate" :class="{ 'text-error': isTodoOverdue(todo) }" data-testid="due-date">
+                {{ formatDueDate(todo.dueDate) }}
+              </div>
               <template #append>
                 <v-btn
                   icon="mdi-pencil"
@@ -471,7 +484,19 @@ onMounted(loadLists);
         <v-card-title>Add item</v-card-title>
         <v-card-text>
           <v-form ref="addForm" @submit.prevent="submitAddItem">
-            <v-text-field v-model="addTitle" label="Todo title" :rules="titleRules" />
+            <v-text-field
+              v-model="addTitle"
+              label="Todo title"
+              data-testid="add-todo-title"
+              :rules="titleRules"
+            />
+            <v-text-field
+              v-model="addDueDate"
+              label="Due date"
+              type="date"
+              data-testid="add-todo-due-date"
+              :rules="optionalDueDateRules"
+            />
             <v-alert v-if="addError" type="error" class="mb-2">{{ addError }}</v-alert>
           </v-form>
         </v-card-text>
@@ -497,7 +522,19 @@ onMounted(loadLists);
         <v-card-title>Edit item</v-card-title>
         <v-card-text>
           <v-form ref="editForm" @submit.prevent="submitEditItem">
-            <v-text-field v-model="editTitle" label="Todo title" :rules="titleRules" />
+            <v-text-field
+              v-model="editTitle"
+              label="Todo title"
+              data-testid="edit-todo-title"
+              :rules="titleRules"
+            />
+            <v-text-field
+              v-model="editDueDate"
+              label="Due date"
+              type="date"
+              data-testid="edit-todo-due-date"
+              :rules="optionalDueDateRules"
+            />
             <v-alert v-if="editError" type="error" class="mb-2">{{ editError }}</v-alert>
           </v-form>
         </v-card-text>

@@ -6,6 +6,34 @@ import {
 } from "../authorization/authorization.js";
 
 const MAX_TODO_TITLE_LENGTH = 255;
+const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const INVALID_DUE_DATE_MESSAGE = "Due date must be a valid date in YYYY-MM-DD format.";
+
+const isValidDueDate = (value) => {
+  if (!DATE_ONLY_REGEX.test(value)) {
+    return false;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return (
+    parsed.getUTCFullYear() === year &&
+    parsed.getUTCMonth() === month - 1 &&
+    parsed.getUTCDate() === day
+  );
+};
+
+const parseDueDateInput = (dueDate) => {
+  if (dueDate === null || dueDate === undefined || dueDate === "") {
+    return { value: null };
+  }
+
+  if (typeof dueDate !== "string" || !isValidDueDate(dueDate)) {
+    return { error: INVALID_DUE_DATE_MESSAGE };
+  }
+
+  return { value: dueDate };
+};
 
 const parseId = (rawId) => parseInt(rawId, 10);
 
@@ -66,11 +94,17 @@ exports.createForList = async (req, res) => {
       return res.status(400).send(titleError);
     }
 
+    const dueDateResult = parseDueDateInput(req.body?.dueDate);
+    if (dueDateResult.error) {
+      return res.status(400).send({ message: dueDateResult.error });
+    }
+
     const todo = await db.todo.create({
       title: req.body.title.trim(),
       listId,
       userId: req.user.id,
       completed: false,
+      dueDate: dueDateResult.value,
     });
 
     return res.status(201).send(todo);
@@ -102,6 +136,14 @@ exports.update = async (req, res) => {
 
     if (Object.prototype.hasOwnProperty.call(req.body, "completed")) {
       todo.completed = Boolean(req.body.completed);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "dueDate")) {
+      const dueDateResult = parseDueDateInput(req.body.dueDate);
+      if (dueDateResult.error) {
+        return res.status(400).send({ message: dueDateResult.error });
+      }
+      todo.dueDate = dueDateResult.value;
     }
 
     await todo.save();

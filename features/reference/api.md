@@ -1,7 +1,7 @@
 # API Reference
 
 **Base path:** `/todo/`  
-**Status:** Integrated API through **Feature 4** (auth, lists, todos, profile).  
+**Status:** Integrated API through **Feature 5** (auth, lists, todos, profile, due dates).  
 **Authority for new work:** feature specs in `features/` — update this file in the same PR when routes or payloads change.
 
 **Auth:** Send `Authorization: Bearer <token>` on protected routes.  
@@ -15,6 +15,7 @@
 | List CRUD | 2 |
 | Todo items | 3 |
 | User profile | 4 |
+| Todo due dates | 5 |
 
 ---
 
@@ -94,8 +95,8 @@
 | `DELETE` | `/todo/todos/:id` | Yes | Delete an owned todo |
 
 **Create body:** `{ "title": "Buy milk" }`  
-**Success object:** `{ id, listId, title, completed, userId, createdAt, updatedAt }` (`201` create, `200` update). New todos default `completed: false`.  
-**Errors:** empty title `400` `"Todo title is required."`; title > 255 chars `400`; missing/unowned list or todo `404` `"List with id=<id> not found."` / `"Todo with id=<id> not found."`. Unauthenticated `401`. Deleting a list cascades todos.
+**Success object:** `{ id, listId, title, completed, dueDate, userId, createdAt, updatedAt }` (`201` create, `200` update). New todos default `completed: false`. `dueDate` is `YYYY-MM-DD` or `null`.  
+**Errors:** empty title `400` `"Todo title is required."`; title > 255 chars `400`; invalid due date `400` `"Due date must be a valid date in YYYY-MM-DD format."`; missing/unowned list or todo `404`. Unauthenticated `401`. Deleting a list cascades todos. Omitting `dueDate` on PUT leaves the stored value; `dueDate: null` clears it.
 
 ---
 

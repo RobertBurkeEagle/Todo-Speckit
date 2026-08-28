@@ -54,6 +54,8 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Optional password on profile update is bcrypt-hashed when provided | `PUT /todo/users/:id` | Feature 4 |
 | Logout lives in the profile dropdown; menu bar has no Sign out button | `MenuBar.vue` | Feature 4 |
 | After profile save, `localStorage` `user` is refreshed and `user-logged-in` dispatched | `MenuBar.vue` | Feature 4 |
+| Incomplete todos with `dueDate` before today (local calendar) use overdue styling | `Dashboard.vue` + `isTodoOverdue` | Feature 5 |
+| Completed todos never use overdue styling | `isTodoOverdue` | Feature 5 |
 | No Feature 1 API returns another user's profile or session | Auth controllers | Feature 1 |
 
 ## Errors (product convention)

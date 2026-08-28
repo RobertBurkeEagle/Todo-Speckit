@@ -280,4 +280,116 @@ describe("Feature 3 — Todo API", () => {
       expect(await db.todo.findByPk(eggs.body.id)).toBeNull();
     });
   });
+
+  describe("US-5.1 — Set a due date when creating a todo", () => {
+    it("User adds a todo with a due date", async () => {
+      const { authHeader } = await registerUser();
+      const list = await createList(authHeader, "Groceries");
+
+      const response = await createTodo(authHeader, list.body.id, "Buy milk", {
+        dueDate: "2026-07-15",
+      });
+
+      expect(response.status).toBe(201);
+      expect(response.body.dueDate).toBe("2026-07-15");
+    });
+
+    it("User adds a todo without a due date", async () => {
+      const { authHeader } = await registerUser();
+      const list = await createList(authHeader, "Groceries");
+
+      const response = await createTodo(authHeader, list.body.id, "Buy milk");
+
+      expect(response.status).toBe(201);
+      expect(response.body.dueDate).toBeNull();
+    });
+
+    it("API rejects an invalid due date on create", async () => {
+      const { authHeader } = await registerUser();
+      const list = await createList(authHeader, "Groceries");
+
+      const response = await createTodo(authHeader, list.body.id, "Task", {
+        dueDate: "not-a-date",
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe(
+        "Due date must be a valid date in YYYY-MM-DD format."
+      );
+      expect(await db.todo.count()).toBe(0);
+    });
+  });
+
+  describe("US-5.3 — Edit or clear a due date", () => {
+    it("User sets a due date when editing a todo", async () => {
+      const { authHeader } = await registerUser();
+      const list = await createList(authHeader, "Groceries");
+      const todo = await createTodo(authHeader, list.body.id, "Buy milk");
+
+      const response = await request(app)
+        .put(`/todo/todos/${todo.body.id}`)
+        .set(authHeader)
+        .send({ dueDate: "2026-07-20" });
+
+      expect(response.status).toBe(200);
+      expect(response.body.dueDate).toBe("2026-07-20");
+    });
+
+    it("User clears a due date when editing a todo", async () => {
+      const { authHeader } = await registerUser();
+      const list = await createList(authHeader, "Groceries");
+      const todo = await createTodo(authHeader, list.body.id, "Buy milk", {
+        dueDate: "2026-07-20",
+      });
+
+      const response = await request(app)
+        .put(`/todo/todos/${todo.body.id}`)
+        .set(authHeader)
+        .send({ dueDate: null });
+
+      expect(response.status).toBe(200);
+      expect(response.body.dueDate).toBeNull();
+    });
+
+    it("API rejects an invalid due date on update", async () => {
+      const { authHeader } = await registerUser();
+      const list = await createList(authHeader, "Groceries");
+      const todo = await createTodo(authHeader, list.body.id, "Buy milk", {
+        dueDate: "2026-07-15",
+      });
+
+      const response = await request(app)
+        .put(`/todo/todos/${todo.body.id}`)
+        .set(authHeader)
+        .send({ dueDate: "2026-99-99" });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe(
+        "Due date must be a valid date in YYYY-MM-DD format."
+      );
+      const stored = await db.todo.findByPk(todo.body.id);
+      expect(stored.dueDate).toBe("2026-07-15");
+    });
+
+    it("User cannot set due date on another user's todo", async () => {
+      const userA = await registerUser({
+        email: "a@example.com",
+        username: "usera",
+      });
+      const userB = await registerUser({
+        email: "b@example.com",
+        username: "userb",
+      });
+      const listB = await createList(userB.authHeader, "Secret");
+      const todoB = await createTodo(userB.authHeader, listB.body.id, "Keep Me");
+
+      const response = await request(app)
+        .put(`/todo/todos/${todoB.body.id}`)
+        .set(userA.authHeader)
+        .send({ dueDate: "2026-07-15" });
+
+      expect(response.status).toBe(404);
+      expect(response.body.message).toBe(`Todo with id=${todoB.body.id} not found.`);
+    });
+  });
 });
