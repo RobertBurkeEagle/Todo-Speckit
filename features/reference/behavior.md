@@ -46,6 +46,10 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 | Lists are ordered alphabetically by name | `GET /todo/lists` | Feature 2 |
 | Dashboard is a single lists view with dialog create/rename/delete | `Dashboard.vue` | Feature 2 |
 | `MenuBar` shows the signed-in name and Sign out; hidden on login/register | `App.vue` + `MenuBar.vue` | Feature 2 |
+| Todos belong to one list and one user; parent list must be owned to create/list | Todo API + `getAccessibleTodoOrNull` | Feature 3 |
+| New todos default `completed: false`; ordered incomplete first then `createdAt` | Todo create + `GET .../todos` | Feature 3 |
+| Deleting a list removes its todos | Sequelize `onDelete: CASCADE` | Feature 3 |
+| Items are managed in nested dialogs from the list row Items icon | `Dashboard.vue` | Feature 3 |
 | No Feature 1 API returns another user's profile or session | Auth controllers | Feature 1 |
 
 ## Errors (product convention)

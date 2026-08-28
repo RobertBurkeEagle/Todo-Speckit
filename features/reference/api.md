@@ -1,7 +1,7 @@
 # API Reference
 
 **Base path:** `/todo/`  
-**Status:** Integrated API through **Feature 2** (authentication + lists).  
+**Status:** Integrated API through **Feature 3** (authentication, lists, todos).  
 **Authority for new work:** feature specs in `features/` — update this file in the same PR when routes or payloads change.
 
 **Auth:** Send `Authorization: Bearer <token>` on protected routes.  
@@ -13,6 +13,7 @@
 |------|---------|
 | Register, login, logout | 1 |
 | List CRUD | 2 |
+| Todo items | 3 |
 
 ---
 
@@ -79,3 +80,18 @@
 **Create / rename body:** `{ "name": "Groceries" }`  
 **Success object:** `{ id, name, userId, createdAt, updatedAt }` (`201` create, `200` update/list).  
 **Errors:** empty name `400` `"List name is required."`; name > 100 chars `400` `"List name must be 100 characters or fewer."`; invalid id `400`; missing/unowned list `404` `"List with id=<id> not found."` (never `403`).
+
+---
+
+## Todos (Feature 3)
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| `GET` | `/todo/lists/:listId/todos` | Yes | Todos in an owned list; incomplete first, then `createdAt` ASC |
+| `POST` | `/todo/lists/:listId/todos` | Yes | Add a todo; `userId`/`listId` from session + owned list |
+| `PUT` | `/todo/todos/:id` | Yes | Update title and/or `completed` |
+| `DELETE` | `/todo/todos/:id` | Yes | Delete an owned todo |
+
+**Create body:** `{ "title": "Buy milk" }`  
+**Success object:** `{ id, listId, title, completed, userId, createdAt, updatedAt }` (`201` create, `200` update). New todos default `completed: false`.  
+**Errors:** empty title `400` `"Todo title is required."`; title > 255 chars `400`; missing/unowned list or todo `404` `"List with id=<id> not found."` / `"Todo with id=<id> not found."`. Unauthenticated `401`. Deleting a list cascades todos.
